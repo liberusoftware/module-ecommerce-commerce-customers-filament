@@ -1,0 +1,51 @@
+{
+    "name": "liberusoftware/ecommerce-commerce-customers-filament",
+    "description": "Filament panel surface for Commerce Customers: files, addresses, groups, memberships, lifecycle decisions and merges.",
+    "type": "liberu-module",
+    "license": "MIT",
+    "version": "0.1.0",
+    "keywords": ["laravel", "filament", "ecommerce", "customers", "liberu"],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/liberusoftware/module-ecommerce-commerce-customers"
+        }
+    ],
+    "require": {
+        "php": "^8.5",
+        "filament/filament": "^5.6",
+        "illuminate/contracts": "^13.0",
+        "illuminate/database": "^13.0",
+        "illuminate/support": "^13.0",
+        "liberusoftware/ecommerce-commerce-customers": "^0.1",
+        "nesbot/carbon": "^3.8.4"
+    },
+    "require-dev": {
+        "liberusoftware/package-testbench": "^1.7",
+        "livewire/livewire": "^4.2",
+        "pestphp/pest": "^5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Liberu\\Ecommerce\\CommerceCustomers\\Filament\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Liberu\\Ecommerce\\CommerceCustomers\\Filament\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "liberu": {
+            "name": "ecommerce-commerce-customers-filament"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        },
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
