@@ -1,84 +1,103 @@
-# Ecommerce: Commerce Customers Filament
+# Commerce Customers — Filament
 
-> This optional Filament 5 presentation package presents exactly one independent domain module. It contributes reusable resources, pages, widgets, schemas, tables, infolists, and actions to application-owned panels while delegating authorization, validation, tenancy, persistence, and business rules to the ecommerce-commerce-customers public boundar
+[![Tests](https://github.com/liberusoftware/module-ecommerce-commerce-customers-filament/actions/workflows/tests.yml/badge.svg)](https://github.com/liberusoftware/module-ecommerce-commerce-customers-filament/actions/workflows/tests.yml)
 
-[Software](https://liberusoftware.com) ·
-[Hosting](https://liberuhosting.com) ·
-[Services](https://liberuservices.com) ·
-[Liberu Group](https://liberugroup.com)
+The merchant's panel over
+[`liberusoftware/ecommerce-commerce-customers`](https://github.com/liberusoftware/module-ecommerce-commerce-customers):
+customer files, addresses, groups, memberships, lifecycle decisions and merges.
 
-![PHP](https://img.shields.io/badge/PHP-8.5-777BB4?logo=php&logoColor=white) ![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white) ![Filament](https://img.shields.io/badge/Filament-5-FDAE4B)
-[![Latest release](https://img.shields.io/github/v/release/liberusoftware/module-ecommerce-commerce-customers-filament?sort=semver)](https://github.com/liberusoftware/module-ecommerce-commerce-customers-filament/releases/latest) [![Tests](https://github.com/liberusoftware/module-ecommerce-commerce-customers-filament/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/liberusoftware/module-ecommerce-commerce-customers-filament/actions/workflows/tests.yml)
+It is a **merchant** surface and only a merchant surface. There is no
+shopper-facing screen here and there is not going to be one — a person's own
+view of the file a merchant holds on them is Customer Accounts' (#846), which
+depends on this module's domain package rather than on this one.
 
-## Features
+## What it puts on a panel
 
-- Fully compatible with **Laravel 13**, **PHP 8.5**, and **Pest 5**.
-- Built following the domain-driven design guidelines of the Liberu architecture.
-- Reusable, presenting a clean public contract and boundaries.
-- Adheres to the strict database, security, and authorization standards of Liberu.
+| | |
+|---|---|
+| **Resources** | `CustomerFileResource`, `CustomerGroupResource` |
+| **Pages** | Customer files: list, create, view, edit. Customer groups: list, create, view. |
+| **Relation managers** | Addresses, Group memberships, Lifecycle decisions (all on a file); Members (on a group) |
+| **Widgets** | None — see below |
 
-## Requirements
+There are no widgets. The one thing that looked like a widget is a customer's
+purchase history, and it belongs on the file it is about rather than on a
+dashboard: it is per-record, it comes from a seam that is usually unbound, and
+a dashboard tile that reads "not available" for every merchant is noise. It is
+a section of the file's infolist instead.
 
-- **PHP 8.5**
-- **Composer 2**
-- A supported database (e.g. MySQL, PostgreSQL, SQLite)
-
-## Quick start
-
-To install this package via Composer, run:
+## Installing
 
 ```bash
-composer require liberusoftware/module-ecommerce-commerce-customers-filament
+composer require liberusoftware/ecommerce-commerce-customers-filament
 ```
+
+The domain package is not on Packagist, so a consuming application adds the VCS
+repository itself — Composer honours `repositories` only from the root
+manifest. `docs/adoption.md` has the entry to paste.
+
+Nothing boots on install. There is no `extra.laravel.providers`, and the
+provider this package ships registers nothing at all: the host's module manager
+registers it when the module is named in `MODULES_ENABLED`, and the panel UI
+arrives separately, per panel, through a plugin.
+
+```php
+use Filament\Facades\Filament;
+use Liberu\Ecommerce\CommerceCustomers\Filament\CommerceCustomersPlugin;
+
+public function panel(Panel $panel): Panel
+{
+    return $panel
+        ->id('admin')
+        ->plugin(
+            CommerceCustomersPlugin::make()
+                ->tenantUsing(fn (): string => (string) Filament::getTenant()?->getKey()),
+        );
+}
+```
+
+Attach it to the panels your staff use and to no others. That is the whole
+reason it is a plugin.
+
+## The five things worth knowing before you change anything
+
+**Nothing identifying is searchable, sortable or filterable.** A search term
+and a filter's state both persist into the query string, and the query string
+persists into browser history, bookmarks, referrer headers and the screenshot
+somebody pastes into a ticket. The one searchable thing on a customer file is
+its `reference` — a non-identifying string the domain mints for exactly this.
+There are **no filters at all**, on any table in the package, and there is a
+test that says so.
+
+**The form requires nothing.** The host's `CustomerResource` marked six fields
+`->required()` over columns its own migration had made nullable, so the panel
+refused records the API happily created. A merchant may hold a file on a person
+and know nothing about them but that they exist.
+
+**Every write goes through a domain action.** No resource, page or relation
+manager writes with Eloquent. That is what keeps the domain's tenant assertion,
+redaction check and supersession check on every path, and it is why the
+relation managers have named actions instead of Filament's built-in create and
+edit.
+
+**Every unpublished ability is forced closed by name.** A missing policy is
+permissive; a policy that exists but lacks the method asked about is *also*
+permissive. `canAssociate()` and `canDissociate()` in particular are live on a
+`hasMany` and default open. See `src/Concerns/`.
+
+**Redaction spans every tenant, and the screen says so.** `RedactPerson` is the
+one operation in the module that is not scoped to a merchant, because a
+subject-access erasure is about a person rather than about a storefront. The
+modal says it in the heading, in the description and on the box you have to
+tick, and three tests keep it saying so.
 
 ## Documentation
 
-- [Liberu Main Documentation](https://github.com/liberusoftware/documentation)
-- [Architecture & Standards Index](https://github.com/liberusoftware/documentation/tree/main/architecture)
+- `docs/domain.md` — what each surface shows and why it shows it that way
+- `docs/adoption.md` — installing, the tenant seam, the Promotions adapter the
+  host owns, and what to turn off in the host
+- `docs/runbook.md` — operating it, and the gaps that are real
 
-## Related Liberu Projects
+## Licence
 
-| Project | Repository | Purpose |
-| --- | --- | --- |
-| **Boilerplate** | [liberusoftware/boilerplate-laravel](https://github.com/liberusoftware/boilerplate-laravel) | Shared Laravel application foundation and reference composition |
-| **CMS** | [liberu-cms/cms-laravel](https://github.com/liberu-cms/cms-laravel) | Structured content, publishing, media, multisite, and headless delivery |
-| **CRM** | [liberu-crm/crm-laravel](https://github.com/liberu-crm/crm-laravel) | Customer data, sales, marketing, service, and customer success |
-| **Billing** | [liberu-billing/billing-laravel](https://github.com/liberu-billing/billing-laravel) | Products, subscriptions, invoicing, payments, and provisioning |
-| **Accounting** | [liberu-accounting/accounting-laravel](https://github.com/liberu-accounting/accounting-laravel) | Ledgers, banking, tax, expenses, close, and financial reporting |
-| **Ecommerce** | [liberu-ecommerce/ecommerce-laravel](https://github.com/liberu-ecommerce/ecommerce-laravel) | Catalog, checkout, orders, fulfillment, returns, B2B, and omnichannel commerce |
-| **Control Panel** | [liberu-control-panel/control-panel-laravel](https://github.com/liberu-control-panel/control-panel-laravel) | Hosting, infrastructure, DNS, mail, databases, backups, and security operations |
-| **Automation** | [liberu-automation/automation-laravel](https://github.com/liberu-automation/automation-laravel) | Governed workflows, provider-neutral AI, approvals, and connectors |
-
-## Security
-
-Please do not report security vulnerabilities through public GitHub issues.
-Follow our [Security Policy](https://github.com/liberusoftware/documentation/blob/main/architecture/SECURITY.md) for private reporting and supported versions.
-
-## License
-
-This project is open-source software. You may use, modify, and distribute it
-under the terms described in [LICENSE.md](LICENSE.md).
-
-The linked license text is authoritative; this summary is not legal advice.
-
-## Feedback and contributing
-
-Feedback and contributions are welcome. You can help by reporting reproducible
-bugs, proposing focused enhancements, improving documentation or translations,
-and submitting tested code changes.
-
-Before contributing, please read [CONTRIBUTING.md](https://github.com/liberusoftware/documentation/blob/main/standards/CONTRIBUTING.md) and our
-[Code of Conduct](https://github.com/liberusoftware/documentation/blob/main/architecture/CODE_OF_CONDUCT.md). Search existing issues first, then use
-the appropriate issue template. Pull requests should explain the problem and
-approach, remain focused, include or update tests, pass the required workflows,
-and document user-visible or breaking changes.
-
-## Contributors
-
-Thank you to everyone who helps improve Liberu.
-
-<a href="https://github.com/liberusoftware/module-ecommerce-commerce-customers-filament/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=liberusoftware/module-ecommerce-commerce-customers-filament" alt="Contributors to liberusoftware/module-ecommerce-commerce-customers-filament">
-</a>
-
-[View the full contributors graph](https://github.com/liberusoftware/module-ecommerce-commerce-customers-filament/graphs/contributors).
+MIT.

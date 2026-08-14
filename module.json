@@ -1,0 +1,32 @@
+{
+    "name": "ecommerce-commerce-customers-filament",
+    "version": "0.1.0",
+    "description": "Filament panel surface for the merchant's file on a person who shops with them.",
+    "category": "presentation",
+    "provider": "Liberu\\Ecommerce\\CommerceCustomers\\Filament\\CommerceCustomersFilamentServiceProvider",
+    "requires": {
+        "packages": {
+            "liberusoftware/ecommerce-commerce-customers": "^0.1"
+        }
+    },
+    "presentation": {
+        "filament": {
+            "admin": [
+                "Liberu\\Ecommerce\\CommerceCustomers\\Filament\\CommerceCustomersPlugin"
+            ]
+        }
+    },
+    "features": [
+        "Customer files listed and searched by their non-identifying reference",
+        "Nothing identifying is searchable, sortable or filterable anywhere in the panel",
+        "Profile form that requires exactly what the schema requires, which is nothing",
+        "Immutable addresses revised, superseded and defaulted through domain actions",
+        "Declared group memberships joined and left, never deleted",
+        "Lifecycle decisions offering only the transitions the domain permits",
+        "File merges confirmed by naming both files by reference",
+        "Redaction that says on screen that it spans every tenant",
+        "Purchase history rendered as unavailable rather than as zero when Orders is absent",
+        "Lifetime value rendered per currency, never folded into one number",
+        "Every unpublished Filament ability forced closed by name"
+    ]
+}
